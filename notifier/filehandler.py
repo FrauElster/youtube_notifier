@@ -50,6 +50,11 @@ def delete_dir(dir_name: str) -> bool:
 
 
 def check_if_file_exists(filename: str) -> bool:
+    """
+    checks if a file exists
+    :param filename: the filename of the file to check
+    :return: whether it exists
+    """
     filepath: str = to_file_path(filename)
     if not os.path.exists(filepath):
         LOGGER.warning(f'{filepath} does not exist')
@@ -61,7 +66,12 @@ def check_if_file_exists(filename: str) -> bool:
 
 
 def save_file(file_name: str, data: any) -> None:
-    """ writes a file, if a file with file_name already exists its content gets overwritten """
+    """
+     writes a file, if a file with file_name already exists its content gets overwritten
+    :param file_name: the filename to save the file. If the ending is 'yaml' it will parse the data to yaml
+    :param data: the data to write into the file
+    :return:
+    """
     file_path: str = to_file_path(file_name)
     if not os.path.isfile(file_path):
         LOGGER.info(f'{file_path} created')
@@ -74,6 +84,11 @@ def save_file(file_name: str, data: any) -> None:
 
 
 def load_file(filename: str) -> any:
+    """
+    Loads the content of a file. If it ends with 'yaml' it will try to parse the yaml file to a python object
+    :param filename: the filename to load
+    :return: the contents of the file
+    """
     file_path: str = to_file_path(filename)
     if not check_if_file_exists(file_path):
         return None

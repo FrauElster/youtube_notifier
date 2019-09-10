@@ -1,5 +1,8 @@
 venv/
 .idea/
+notifier/__pycache__/
 
 *.log
 config.yaml
+results.yaml
+telegram.yaml

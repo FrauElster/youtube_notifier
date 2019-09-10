@@ -1,11 +1,12 @@
 import logging
+import time
 from datetime import datetime
-from typing import List, Dict
+from typing import Dict
 
 from notifier.STRINGS import STRINGS
 from notifier.filehandler import to_file_path, load_file, save_file
 from notifier.telegram_bot import TelegramBot
-from notifier.youtube_crawler import YoutubeCrawler, Video
+from notifier.utils import str_to_datetime
 
 LOGGER: logging.Logger = logging.getLogger("notifier")
 
@@ -13,25 +14,10 @@ LOGGER: logging.Logger = logging.getLogger("notifier")
 def main():
     setup_logger()
     bot: TelegramBot = TelegramBot()
-    # run()
 
-def run():
-    config: Dict[str, any] = load_config()
-    crawler: YoutubeCrawler = YoutubeCrawler()
-    results: List[Video] = []
-
-    for querry in config["querries"]:
-        # results = results + crawler.search(querry, datetime.strptime(config["last_checked"].split(".")[0], '%Y-%m-%d %H:%M:%S'))
-        results = results + crawler.search(querry, datetime.strptime('2019-01-01 20:21:11', '%Y-%m-%d %H:%M:%S'))
-
-    config["last_checked"] = str(datetime.now())
-    save_file(file_name=STRINGS.CONFIG_FILE, data=config)
-
-    results_serialize: List[str] = list(map(lambda video: video.serialize(), results))
-
-    telegrambot: TelegramBot = TelegramBot()
-    telegrambot.notify_youtube_update(results)
-    save_file(file_name=STRINGS.OUTPUT_FILE, data=results_serialize)
+    while True:
+        bot.check_all()
+        time.sleep(6*60*60)
 
 
 def setup_logger() -> None:
@@ -55,16 +41,17 @@ def setup_logger() -> None:
     LOGGER.info('Filehandler and Console_Handler were born, let\'s start logging')
 
 
-def load_config() -> Dict[str, any]:
+def load_last_checked() -> datetime:
     config: Dict[str, any] = load_file(STRINGS.CONFIG_FILE)
-    if "querries" not in config.keys() or not config["querries"]:
-        LOGGER.warning(f"No querries in {STRINGS.CONFIG_FILE}")
-        exit(0)
-    if "last_checked" not in config.keys() or not config["last_checked"]:
-        config["last_checked"] = datetime(year=2010, month=1, day=1)
-        LOGGER.warning(f'No "last_checked" in {STRINGS.CONFIG_FILE}, set to {config["last_checked"]}')
+    return str_to_datetime(config["last_checked"]) if "last_checked" in config.keys() else datetime(year=2010, month=1,
+                                                                                                    day=1)
 
-    return config
+
+def _safe_last_checked(last_checked: datetime):
+    config: Dict[str, any] = load_file(STRINGS.CONFIG_FILE)
+    config["last_checked"] = str(last_checked)
+    save_file(file_name=STRINGS.CONFIG_FILE, data=config)
+
 
 if __name__ == '__main__':
     main()
